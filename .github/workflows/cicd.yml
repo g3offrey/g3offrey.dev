@@ -1,0 +1,38 @@
+# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
+
+name: Deploy
+
+on:
+  push:   
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v5
+    - uses: actions/setup-node@v6
+      with:
+        node-version: latest
+        cache: 'pnpm'
+        
+    - name: Configure git local repository
+      run: |
+        git config --global user.email "actions@github.com"
+        git config --global user.name "R2D2  "
+        git fetch
+        git worktree add dist prod
+        
+    - name: Install dependencies
+      run: pnpm install
+
+    - name: Build
+      run: pnpm build
+
+    - name: Deploy
+      run: |
+        cd dist
+        git add --all
+        git diff-index --quiet HEAD || git commit -m "deployment"
+        git push
